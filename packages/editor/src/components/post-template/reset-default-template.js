@@ -3,7 +3,7 @@
  */
 import { MenuItem } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
-import { useDispatch } from '@wordpress/data';
+import { useSelect, useDispatch } from '@wordpress/data';
 import { store as coreStore } from '@wordpress/core-data';
 
 /**
@@ -20,6 +20,12 @@ export default function ResetDefaultTemplate( { onClick } ) {
 	const allowSwitchingTemplate = useAllowSwitchingTemplates();
 	const { postType, postId } = useEditedPostContext();
 	const { editEntityRecord } = useDispatch( coreStore );
+	const bodyClasses = useSelect( ( select ) => {
+			const { getEditorSettings } = select( 'core/editor' );
+			const editorSettings = getEditorSettings();
+			return editorSettings.bodyClasses;
+		 }, [] );
+	const { updateEditorSettings } = useDispatch( 'core/editor' );
 	// The default template in a post is indicated by an empty string.
 	if ( ! currentTemplateSlug || ! allowSwitchingTemplate ) {
 		return null;
@@ -34,6 +40,18 @@ export default function ResetDefaultTemplate( { onClick } ) {
 					{ template: '' },
 					{ undoIgnore: true }
 				);
+				let hasPageTemplateClass = false;
+				const updatedBodyClasses = bodyClasses.map( className => {
+					if ( className.startsWith( 'page-template-' )) {
+						hasPageTemplateClass = true;
+						return `page-template-default`;
+					}
+					return className;
+				});
+				if ( ! hasPageTemplateClass ) {
+					updatedBodyClasses.push( `page-template-default` );
+				}
+				updateEditorSettings( { bodyClasses: updatedBodyClasses } );
 				onClick();
 			} }
 		>

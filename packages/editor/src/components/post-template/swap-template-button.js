@@ -6,7 +6,7 @@ import { decodeEntities } from '@wordpress/html-entities';
 import { __experimentalBlockPatternsList as BlockPatternsList } from '@wordpress/block-editor';
 import { MenuItem, Modal } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
-import { useDispatch } from '@wordpress/data';
+import { useSelect, useDispatch } from '@wordpress/data';
 import { store as coreStore } from '@wordpress/core-data';
 import { parse } from '@wordpress/blocks';
 
@@ -20,6 +20,12 @@ export default function SwapTemplateButton( { onClick } ) {
 	const { postType, postId } = useEditedPostContext();
 	const availableTemplates = useAvailableTemplates( postType );
 	const { editEntityRecord } = useDispatch( coreStore );
+	const bodyClasses = useSelect( ( select ) => {
+		const { getEditorSettings } = select( 'core/editor' );
+		const editorSettings = getEditorSettings();
+		return editorSettings.bodyClasses;
+	 }, [] );
+	const { updateEditorSettings } = useDispatch( 'core/editor' );
 	if ( ! availableTemplates?.length ) {
 		return null;
 	}
@@ -31,6 +37,18 @@ export default function SwapTemplateButton( { onClick } ) {
 			{ template: template.name },
 			{ undoIgnore: true }
 		);
+		let hasPageTemplateClass = false;
+		const updatedBodyClasses = bodyClasses.map( className => {
+			if ( className.startsWith( 'page-template-' )) {
+				hasPageTemplateClass = true;
+				return `page-template-${ template.name }`;
+			}
+			return className;
+		});
+		if ( ! hasPageTemplateClass ) {
+			updatedBodyClasses.push( `page-template-${ template.name }` );
+		}
+		updateEditorSettings( { bodyClasses: updatedBodyClasses } );
 		setShowModal( false ); // Close the template suggestions modal first.
 		onClick();
 	};

@@ -16,7 +16,7 @@ import {
 import { __ } from '@wordpress/i18n';
 import { useMergeRefs, useRefEffect, useDisabled } from '@wordpress/compose';
 import { __experimentalStyleProvider as StyleProvider } from '@wordpress/components';
-import { useSelect } from '@wordpress/data';
+import { useSelect, dispatch } from '@wordpress/data';
 
 /**
  * Internal dependencies
@@ -118,7 +118,11 @@ function Iframe( {
 	const { styles = '', scripts = '' } = resolvedAssets;
 	/** @type {[Document, import('react').Dispatch<Document>]} */
 	const [ iframeDocument, setIframeDocument ] = useState();
-	const [ bodyClasses, setBodyClasses ] = useState( [] );
+	const bodyClasses = useSelect( ( select ) => {
+		const { getEditorSettings } = select( 'core/editor' );
+		const editorSettings = getEditorSettings();
+		return editorSettings.bodyClasses;
+	 }, [] );
 	const clearerRef = useBlockSelectionClearer();
 	const [ before, writingFlowRef, after ] = useWritingFlow();
 
@@ -140,10 +144,11 @@ function Iframe( {
 
 			clearerRef( documentElement );
 
-			// Ideally ALL classes that are added through get_body_class should
-			// be added in the editor too, which we'll somehow have to get from
-			// the server in the future (which will run the PHP filters).
-			setBodyClasses(
+			// Initial body classes are provided by block-editor-settings.php and may include:
+			// post-type, post-status, post-format, page-template, and locale. 
+			// That can be filtered via block_editor_settings_all on the server.
+			// below we update the core/editor settings to include some additional classes
+			const allBodyClasses = bodyClasses.concat(
 				Array.from( ownerDocument.body.classList ).filter(
 					( name ) =>
 						name.startsWith( 'admin-color-' ) ||
@@ -151,6 +156,8 @@ function Iframe( {
 						name === 'wp-embed-responsive'
 				)
 			);
+			const allBodyClasesSet = new Set( allBodyClasses );
+			dispatch( 'core/editor' ).updateEditorSettings( { bodyClasses: Array.from( allBodyClasesSet ) } );
 
 			contentDocument.dir = ownerDocument.dir;
 

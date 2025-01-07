@@ -159,6 +159,34 @@ function gutenberg_get_block_editor_settings( $settings ) {
 			);
 	}
 
+	$body_classes = array();
+
+	$post = get_post();
+	if ( $post ) {
+		$body_classes[] = 'post-type-' . sanitize_html_class( $post->post_type );
+		$body_classes[] = 'post-status-' . sanitize_html_class( $post->post_status );
+
+		if ( post_type_supports( $post->post_type, 'post-formats' ) ) {
+			$post_format = get_post_format( $post );
+			if ( $post_format && ! is_wp_error( $post_format ) ) {
+				$body_classes[] = 'post-format-' . sanitize_html_class( $post_format );
+			} else {
+				$body_classes[] = 'post-format-standard';
+			}
+		}
+
+		$page_template = get_page_template_slug( $post );
+
+		if ( false !== $page_template ) {
+			$page_template = empty( $page_template ) ? 'default' : str_replace( '.', '-', basename( $page_template, '.php' ) );
+			$body_classes[] = 'page-template-' . sanitize_html_class( $page_template );
+		}
+	}
+
+	$body_classes[] = 'locale-' . sanitize_html_class( strtolower( str_replace( '_', '-', get_user_locale() ) ) );
+
+	$settings['bodyClasses'] = $body_classes;
+
 	return $settings;
 }
 add_filter( 'block_editor_settings_all', 'gutenberg_get_block_editor_settings', 0 );
