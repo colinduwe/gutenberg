@@ -21,7 +21,7 @@ import { unlock } from '../../lock-unlock';
 
 extend( [ namesPlugin, a11yPlugin ] );
 
-function useDarkThemeBodyClassName( styles, scope ) {
+function useDarkThemeBodyClassName( scope, bodyClasses ) {
 	return useCallback(
 		( node ) => {
 			if ( ! node ) {
@@ -58,12 +58,12 @@ function useDarkThemeBodyClassName( styles, scope ) {
 				colordBackgroundColor.luminance() > 0.5 ||
 				colordBackgroundColor.alpha() === 0
 			) {
-				body.classList.remove( 'is-dark-theme' );
-			} else {
-				body.classList.add( 'is-dark-theme' );
+				bodyClasses.filter( ( className ) => className !== 'is-dark-theme' );
+			} else if( bodyClasses.includes( 'is-dark-theme' ) === false ) {
+				bodyClasses.push( 'is-dark-theme' );
 			}
 		},
-		[ styles, scope ]
+		[ scope, bodyClasses ]
 	);
 }
 
@@ -98,12 +98,18 @@ function EditorStyles( { styles, scope, transformOptions } ) {
 		];
 	}, [ styles, overrides, scope, transformOptions ] );
 
+	const bodyClasses = useSelect( ( select ) => {
+		const { getEditorSettings } = select( 'core/editor' );
+		const editorSettings = getEditorSettings();
+		return editorSettings.bodyClasses;
+	}, [] );
+
 	return (
 		<>
 			{ /* Use an empty style element to have a document reference,
 			     but this could be any element. */ }
 			<style
-				ref={ useDarkThemeBodyClassName( transformedStyles, scope ) }
+				ref={ useDarkThemeBodyClassName( scope, bodyClasses ) }
 			/>
 			{ transformedStyles.map( ( css, index ) => (
 				<style key={ index }>{ css }</style>

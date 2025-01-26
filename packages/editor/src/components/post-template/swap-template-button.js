@@ -14,6 +14,7 @@ import { parse } from '@wordpress/blocks';
  * Internal dependencies
  */
 import { useAvailableTemplates, useEditedPostContext } from './hooks';
+import { store as editorStore } from '../../store';
 
 export default function SwapTemplateButton( { onClick } ) {
 	const [ showModal, setShowModal ] = useState( false );
@@ -21,11 +22,11 @@ export default function SwapTemplateButton( { onClick } ) {
 	const availableTemplates = useAvailableTemplates( postType );
 	const { editEntityRecord } = useDispatch( coreStore );
 	const bodyClasses = useSelect( ( select ) => {
-		const { getEditorSettings } = select( 'core/editor' );
+		const { getEditorSettings } = select( editorStore );
 		const editorSettings = getEditorSettings();
 		return editorSettings.bodyClasses;
 	 }, [] );
-	const { updateEditorSettings } = useDispatch( 'core/editor' );
+	const { updateEditorSettings } = useDispatch( editorStore );
 	if ( ! availableTemplates?.length ) {
 		return null;
 	}

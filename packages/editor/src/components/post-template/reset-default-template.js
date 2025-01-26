@@ -14,6 +14,7 @@ import {
 	useCurrentTemplateSlug,
 	useEditedPostContext,
 } from './hooks';
+import { store as editorStore } from '../../store';
 
 export default function ResetDefaultTemplate( { onClick } ) {
 	const currentTemplateSlug = useCurrentTemplateSlug();
@@ -21,11 +22,11 @@ export default function ResetDefaultTemplate( { onClick } ) {
 	const { postType, postId } = useEditedPostContext();
 	const { editEntityRecord } = useDispatch( coreStore );
 	const bodyClasses = useSelect( ( select ) => {
-			const { getEditorSettings } = select( 'core/editor' );
+			const { getEditorSettings } = select( editorStore );
 			const editorSettings = getEditorSettings();
 			return editorSettings.bodyClasses;
 		 }, [] );
-	const { updateEditorSettings } = useDispatch( 'core/editor' );
+	const { updateEditorSettings } = useDispatch( editorStore );
 	// The default template in a post is indicated by an empty string.
 	if ( ! currentTemplateSlug || ! allowSwitchingTemplate ) {
 		return null;
