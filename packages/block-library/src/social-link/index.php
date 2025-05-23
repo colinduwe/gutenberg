@@ -37,6 +37,19 @@ function render_block_core_social_link( $attributes, $content, $block ) {
 	}
 
 	/**
+	 * Prepend phone numbers with `tel:` if not set and sanitize the number.
+	 */
+	if ( 'phone' === $service ) {
+		// Remove spaces, parentheses, and other non-valid characters
+		$url = preg_replace( '/[^0-9+\-.]/', '', $url );
+		
+		// Ensure the URL starts with tel:
+		if ( ! str_starts_with( $url, 'tel:' ) ) {
+			$url = 'tel:' . $url;
+		}
+	}
+
+	/**
 	 * Prepend URL with https:// if it doesn't appear to contain a scheme
 	 * and it's not a relative link starting with //.
 	 */
